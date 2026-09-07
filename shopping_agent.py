@@ -19,7 +19,7 @@ from reviews_api import get_product_rating
 llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
 
 # Vision model (supports multimodal image inputs)
-vision_llm = ChatGroq(model="meta-llama/llama-4-scout-17b-16e-instruct", temperature=0)
+vision_llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
 
