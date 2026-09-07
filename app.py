@@ -15,7 +15,7 @@ from langchain_groq import ChatGroq
 
 # Initialize models (Updated to active, non-decommissioned endpoints)
 llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
-vision_llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
+vision_llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
 
 # Ensure store.db exists before agent runs
 from setup_db import create_database
