@@ -16,11 +16,11 @@ load_dotenv()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
 
+# Use gemini-1.5-flash (or gemini-2.0-flash)
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",
+    model="gemini-1.5-flash",
     temperature=0,
 )
-
 
 
 # ---------------------------------------------------------------------------
