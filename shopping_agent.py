@@ -5,25 +5,23 @@ import sqlite3
 from typing import Optional
 
 from dotenv import load_dotenv
+
+# 1. LOAD DOTENV BEFORE INITIALIZING GROQ MODELS
+load_dotenv()
+
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_core.messages import HumanMessage
 from langchain_groq import ChatGroq
-
-# Replace ANY hardcoded ChatGroq initialization in shopping_agent.py with active models:
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
-
-# If vision or secondary models are defined here as well:
-vision_llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
-
-
-
 from reviews_api import get_product_rating
 
-load_dotenv()
+# 2. INITIALIZE MODELS WITH VALID ENDPOINTS
+llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+
+# Vision model (must support multimodal image inputs)
+vision_llm = ChatGroq(model="meta-llama/llama-4-scout-17b-16e-instruct", temperature=0)
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
-
 
 
 # ---------------------------------------------------------------------------
