@@ -16,11 +16,11 @@ load_dotenv()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
 
-# Use Gemini 2.5 Flash for both general agent reasoning and vision analysis
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
+    model="gemini-2.0-flash",
     temperature=0,
 )
+
 
 
 # ---------------------------------------------------------------------------
