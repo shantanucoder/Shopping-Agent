@@ -18,7 +18,7 @@ from reviews_api import get_product_rating
 # 2. INITIALIZE MODELS WITH VALID ENDPOINTS
 llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
 
-# Vision model (must support multimodal image inputs)
+# Vision model (supports multimodal image inputs)
 vision_llm = ChatGroq(model="meta-llama/llama-4-scout-17b-16e-instruct", temperature=0)
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
@@ -29,7 +29,7 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
 # ---------------------------------------------------------------------------
 
 @tool
-def search_products(query: str, max_price: Optional[float] = None, is_organic: Optional[bool] = None) -> str:
+def search_products(query: str = "", max_price: Optional[float] = None, is_organic: Optional[bool] = None) -> str:
     """
     Search the product database by keyword (matched against name, description, and category).
     Optionally filter by maximum price and/or organic status.
@@ -42,9 +42,9 @@ def search_products(query: str, max_price: Optional[float] = None, is_organic: O
     sql = "SELECT id, name, category, price, description, is_organic FROM products WHERE 1=1"
     params: list = []
 
-    if query:
+    if query and query.strip():
         sql += " AND (name LIKE ? OR description LIKE ? OR category LIKE ?)"
-        like = f"%{query}%"
+        like = f"%{query.strip()}%"
         params.extend([like, like, like])
 
     if max_price is not None:
@@ -116,15 +116,17 @@ def checkout(product_id: int) -> str:
 @tool
 def describe_product_image(image_path: str) -> str:
     """
-    Analyze a product image and return its key attributes as a JSON object.
+    Analyze a product image and return its key attributes as a JSON object string.
     Use this when the user uploads a photo of a product they are interested in.
-    The returned attributes can be used directly with search_products.
     """
+    if not os.path.exists(image_path):
+        return json.dumps({"error": f"Image file not found at path: {image_path}"})
+
     with open(image_path, "rb") as f:
-        image_data = base64.b64encode(f.read()).decode()
+        image_data = base64.b64encode(f.read()).decode("utf-8")
 
     ext = os.path.splitext(image_path)[1].lower().lstrip(".")
-    mime = "image/jpeg" if ext in ("jpg", "jpeg") else f"image/{ext}"
+    mime = "image/png" if ext == "png" else "image/jpeg"
 
     message = HumanMessage(content=[
         {
@@ -135,11 +137,13 @@ def describe_product_image(image_path: str) -> str:
             "type": "text",
             "text": (
                 "Look at this product image and extract its key attributes. "
-                "Return ONLY a JSON object with these fields:\n"
-                "- product_type: what kind of product it is (e.g. honey, olive oil, almonds)\n"
-                "- search_query: a short keyword to search for it (e.g. 'honey', 'olive oil')\n"
-                "- is_organic: true if the label says organic, false if not, null if unclear\n"
-                "- description: one sentence describing the product"
+                "Return ONLY a valid JSON object string with no markdown formatting or backticks:\n"
+                "{\n"
+                '  "product_type": "kind of product",\n'
+                '  "search_query": "short keyword",\n'
+                '  "is_organic": true/false/null,\n'
+                '  "description": "one sentence description"\n'
+                "}"
             ),
         },
     ])
