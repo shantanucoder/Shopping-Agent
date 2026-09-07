@@ -1,29 +1,14 @@
 import os
 import tempfile
+
 import streamlit as st
 
+from shopping_agent import agent
+
 # ---------------------------------------------------------------------------
-# Page config (Must be the first Streamlit command)
+# Page config
 # ---------------------------------------------------------------------------
 st.set_page_config(page_title="AI Shopping Assistant", page_icon="🛒", layout="wide")
-
-# Set the environment variable safely from Streamlit secrets
-if "GROQ_API_KEY" in st.secrets:
-    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
-
-from langchain_groq import ChatGroq
-
-# Initialize models (Updated to active, non-decommissioned endpoints)
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
-vision_llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
-
-# Ensure store.db exists before agent runs
-from setup_db import create_database
-DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
-if not os.path.exists(DB_PATH):
-    create_database()
-
-from shopping_agent import agent
 
 st.title("🛒 AI Shopping Assistant")
 st.caption("Tell me what you want — I'll search, rate, and order the best match for you.")
