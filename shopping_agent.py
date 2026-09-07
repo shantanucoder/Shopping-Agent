@@ -6,20 +6,24 @@ from typing import Optional
 
 from dotenv import load_dotenv
 
-# 1. LOAD DOTENV BEFORE INITIALIZING GROQ MODELS
+# Load environment variables
 load_dotenv()
 
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_core.messages import HumanMessage
-from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from reviews_api import get_product_rating
 
-# 2. INITIALIZE MODELS WITH VALID ENDPOINTS
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
-
-# Vision model (supports multimodal image inputs)
-vision_llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+# ---------------------------------------------------------------------------
+# INITIALIZE GEMINI MODEL
+# ---------------------------------------------------------------------------
+# gemini-2.5-flash handles both standard reasoning and multimodal images
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",
+    temperature=0,
+    google_api_key=os.getenv("GEMINI_API_KEY")
+)
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
 
@@ -148,7 +152,7 @@ def describe_product_image(image_path: str) -> str:
         },
     ])
 
-    response = vision_llm.invoke([message])
+    response = llm.invoke([message])
     return response.content
 
 
@@ -195,7 +199,7 @@ if __name__ == "__main__":
                 {
                     "role": "user",
                     "content": (
-                        "I want to buy organic honey with 4.5+ rating and less than $20 price."
+                        "I want organic honey under 15 dollar"
                     ),
                 }
             ]
