@@ -10,14 +10,20 @@ from langchain.tools import tool
 from langchain_core.messages import HumanMessage
 from langchain_groq import ChatGroq
 
+# Replace ANY hardcoded ChatGroq initialization in shopping_agent.py with active models:
+llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+
+# If vision or secondary models are defined here as well:
+vision_llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0)
+
+
+
 from reviews_api import get_product_rating
 
 load_dotenv()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
 
-llm = ChatGroq(model="qwen/qwen3-32b", temperature=0)
-vision_llm = ChatGroq(model="meta-llama/llama-4-scout-17b-16e-instruct", temperature=0)
 
 
 # ---------------------------------------------------------------------------
