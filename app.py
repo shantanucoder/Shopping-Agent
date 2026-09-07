@@ -1,10 +1,16 @@
+
+
 import os
 import tempfile
-
 import streamlit as st
 
-from shopping_agent import agent
+# Ensure store.db exists before agent runs
+from setup_db import create_database
+DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
+if not os.path.exists(DB_PATH):
+    create_database()
 
+from shopping_agent import agent
 # ---------------------------------------------------------------------------
 # Page config
 # ---------------------------------------------------------------------------
