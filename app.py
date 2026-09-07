@@ -4,6 +4,15 @@ import os
 import tempfile
 import streamlit as st
 
+from langchain_groq import ChatGroq
+
+# Set the environment variable from Streamlit secrets
+os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+
+# Initialize models
+llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+vision_llm = ChatGroq(model="llama-3.2-11b-vision-preview", temperature=0)
+
 # Ensure store.db exists before agent runs
 from setup_db import create_database
 DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
