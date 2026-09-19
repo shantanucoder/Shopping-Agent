@@ -103,6 +103,8 @@ def checkout(product_id: int) -> str:
     conn.commit()
     conn.close()
 
+    _push_db_to_github(f"Order #{order_id}: {name}")
+
     return (
         f"Order #{order_id} confirmed! '{name}' has been successfully ordered for ${price:.2f}. "
         f"Your order will arrive in 3-5 business days. Thank you for shopping with us!"
