@@ -16,8 +16,8 @@ load_dotenv()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
 
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
-vision_llm = ChatGroq(model="llama-3.2-11b-vision-preview", temperature=0)
+llm = ChatGroq(model="openai/gpt-oss-120b", temperature=0)
+vision_llm = ChatGroq(model="qwen/qwen3.8-27b", temperature=0)
 
 
 # ---------------------------------------------------------------------------
