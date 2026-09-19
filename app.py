@@ -63,7 +63,7 @@ if (
 ):
     with st.chat_message("assistant"):
         with st.spinner("Analyzing image and searching…"):
-            result = agent.invoke({"messages": st.session_state.messages})
+            result = agent.invoke({"messages": [st.session_state.messages[-1]]})
             response = result["messages"][-1].content.replace("`", "")
         st.markdown(response.replace("$", r"\$"))
 
