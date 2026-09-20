@@ -4,6 +4,7 @@ import os
 import sqlite3
 from typing import Optional
 
+import requests
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain.tools import tool
@@ -15,6 +16,50 @@ from reviews_api import get_product_rating
 load_dotenv()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
+
+GITHUB_REPO = os.environ.get("GITHUB_REPO", "shantanucoder/shopping-agent")
+GITHUB_BRANCH = os.environ.get("GITHUB_BRANCH", "main")
+GITHUB_DB_PATH = "store.db"
+
+
+def _push_db_to_github(commit_message: str) -> None:
+    """
+    Best-effort push of the local store.db back to the GitHub repo, so orders survive
+    the next reboot/redeploy. Requires a GITHUB_TOKEN secret with contents:write on
+    GITHUB_REPO; silently skipped if that secret isn't set.
+    """
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        return
+
+    api_url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_DB_PATH}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+    }
+
+    try:
+        current = requests.get(api_url, headers=headers, params={"ref": GITHUB_BRANCH}, timeout=10)
+        current.raise_for_status()
+        sha = current.json()["sha"]
+
+        with open(DB_PATH, "rb") as f:
+            content_b64 = base64.b64encode(f.read()).decode()
+
+        response = requests.put(
+            api_url,
+            headers=headers,
+            json={
+                "message": commit_message,
+                "content": content_b64,
+                "sha": sha,
+                "branch": GITHUB_BRANCH,
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        print(f"Warning: failed to push store.db to GitHub: {exc}")
 
 llm = ChatGroq(model="qwen/qwen3.8-27b", temperature=0, max_tokens=512, reasoning_effort="none")
 vision_llm = ChatGroq(model="qwen/qwen3.8-27b", temperature=0, max_tokens=512, reasoning_effort="none")
@@ -177,22 +222,4 @@ agent = create_agent(
         "   (if only one was listed and the user says 'yes', use that product's ID).\n"
         "2. Call checkout with that product_id (the number from (ID:X)).\n"
         "3. Confirm the order to the user in plain text.\n\n"
-        "Never place an order unless the user explicitly confirms. "
-        "Never guess a product_id — always take it from the (ID:X) in your own previous message."
-    ),
-)
-
-if __name__ == "__main__":
-    result = agent.invoke(
-        {
-            "messages": [
-                {
-                    "role": "user",
-                    "content": (
-                        "I want to buy organic honey with 4.5+ rating and less than $20 price."
-                    ),
-                }
-            ]
-        }
-    )
-    print(result["messages"][-1].content)
+        "Never
