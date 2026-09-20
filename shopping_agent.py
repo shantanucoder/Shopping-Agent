@@ -4,6 +4,7 @@ import os
 import sqlite3
 from typing import Optional
 
+import requests
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain.tools import tool
@@ -16,8 +17,52 @@ load_dotenv()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "store.db")
 
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
-vision_llm = ChatGroq(model="llama-3.2-11b-vision-preview", temperature=0)
+GITHUB_REPO = os.environ.get("GITHUB_REPO", "shantanucoder/shopping-agent")
+GITHUB_BRANCH = os.environ.get("GITHUB_BRANCH", "main")
+GITHUB_DB_PATH = "store.db"
+
+
+def _push_db_to_github(commit_message: str) -> None:
+    """
+    Best-effort push of the local store.db back to the GitHub repo, so orders survive
+    the next reboot/redeploy. Requires a GITHUB_TOKEN secret with contents:write on
+    GITHUB_REPO; silently skipped if that secret isn't set.
+    """
+    token = os.environ.get("GITHUB_TOKEN")
+    if not token:
+        return
+
+    api_url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{GITHUB_DB_PATH}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+    }
+
+    try:
+        current = requests.get(api_url, headers=headers, params={"ref": GITHUB_BRANCH}, timeout=10)
+        current.raise_for_status()
+        sha = current.json()["sha"]
+
+        with open(DB_PATH, "rb") as f:
+            content_b64 = base64.b64encode(f.read()).decode()
+
+        response = requests.put(
+            api_url,
+            headers=headers,
+            json={
+                "message": commit_message,
+                "content": content_b64,
+                "sha": sha,
+                "branch": GITHUB_BRANCH,
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        print(f"Warning: failed to push store.db to GitHub: {exc}")
+
+llm = ChatGroq(model="qwen/qwen3.8-27b", temperature=0, max_tokens=512, reasoning_effort="none")
+vision_llm = ChatGroq(model="qwen/qwen3.8-27b", temperature=0, max_tokens=512, reasoning_effort="none")
 
 
 # ---------------------------------------------------------------------------
@@ -102,6 +147,8 @@ def checkout(product_id: int) -> str:
     order_id = cursor.lastrowid
     conn.commit()
     conn.close()
+
+    _push_db_to_github(f"Order #{order_id}: {name}")
 
     return (
         f"Order #{order_id} confirmed! '{name}' has been successfully ordered for ${price:.2f}. "
