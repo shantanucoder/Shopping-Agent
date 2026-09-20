@@ -2,7 +2,10 @@ import base64
 import json
 import os
 import sqlite3
+from datetime import datetime, timedelta, timezone
 from typing import Optional
+
+IST = timezone(timedelta(hours=5, minutes=30))
 
 import requests
 from dotenv import load_dotenv
@@ -140,9 +143,10 @@ def checkout(product_id: int) -> str:
         return f"Error: product with ID {product_id} not found."
 
     name, price = row
+    ordered_at = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
     cursor.execute(
-        "INSERT INTO orders (product_id, product_name, price) VALUES (?, ?, ?)",
-        (product_id, name, price),
+        "INSERT INTO orders (product_id, product_name, price, ordered_at) VALUES (?, ?, ?, ?)",
+        (product_id, name, price, ordered_at),
     )
     order_id = cursor.lastrowid
     conn.commit()
