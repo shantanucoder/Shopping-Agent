@@ -10,7 +10,7 @@ from shopping_agent import agent
 # ---------------------------------------------------------------------------
 st.set_page_config(page_title="Smart Shopping Assistant", page_icon="🛒", layout="wide")
 
-st.title("🛒 Smart Vicky Shopping Assistant")
+st.title("🛒 Smart Shopping Assistant")
 st.caption("Tell me what you want — I'll search, rate, and order the best match for you.")
 
 # ---------------------------------------------------------------------------
