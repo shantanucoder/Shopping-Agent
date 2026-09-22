@@ -8,9 +8,9 @@ from shopping_agent import agent
 # ---------------------------------------------------------------------------
 # Page config
 # ---------------------------------------------------------------------------
-st.set_page_config(page_title="AI Shopping Assistant", page_icon="🛒", layout="wide")
+st.set_page_config(page_title="Smart Shopping Assistant", page_icon="🛒", layout="wide")
 
-st.title("🛒 AI Shopping Assistant")
+st.title("🛒 Smart Shopping Assistant")
 st.caption("Tell me what you want — I'll search, rate, and order the best match for you.")
 
 # ---------------------------------------------------------------------------
